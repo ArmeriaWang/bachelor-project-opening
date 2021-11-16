@@ -1,0 +1,119 @@
+\section{课题来源及研究的目的和意义}
+
+在包括图像识别、自然语言处理、机器人、自动驾驶等许多应用场景中，
+深度神经网络 (Deep Neural Network, DNN) 已成为解决复杂问题的重要手段。
+在不同的需求下，人们对深度前馈神经网络 (或称 DNN 推理) 的需求可能有很大区别。
+例如，数据中心的图像识别系统往往要求较高的吞吐量但愿意牺牲一定的准确度，
+而自动驾驶系统中则对功耗和延时极为敏感。
+相比于通用处理器和 FPGA，定制化的 DNN 推理加速器能够灵活地提供设计方案，
+使之更贴合各类应用场景的性能和功耗需要。
+当前，已有若干关于定制化加速器架构的工作，
+它们的共同点是集成了大量的乘-加 (Multiply-and-Accumulate, MAC) 单元，
+但在计算单元网络连接、内存层级和数据流等方面有相当大的差异。
+这表明，DNN 推理加速器有着庞大的硬件设计空间 (Hardware Design Space)。
+然而，ASIC 的工程成本高昂且设计周期漫长，
+在 DNN ASIC 需求巨大且差异显著的当下，
+若人工逐个尝试每个设计点并加以验证，时间和经济成本都是无法接受的。
+因此，如何实现 DNN 加速器设计的自动化成为 DNN ASIC 领域的重大课题 \cite{capra_hardware_2020}。
+
+脉动阵列 (Systolic Array, SA) 是一种
+由相同的互连的计算单元 (Processing Element, PE) 组成的架构，
+可用于许多应用程序，如线性代数\cite{moss_customizable_2018}、
+机器学习\cite{jouppi_-datacenter_2017}和动态规划\cite{khailany_accelerating_2020}等，
+是资源利用率最高、可伸展性最强、功耗最优的架构之一，
+被 NVIDIA TPU 等许多卓有成效的深度学习硬件采用。
+通过局部连接和模块化 PE，这种设计可以轻松扩展到整个高频芯片。
+多面体模型 (Polyhedral Model) 是循环编译优化技术的重要数学模型\cite{hutchison_polyhedral_2010,rauchwerger_putting_2004}，
+也常用作脉动阵列结构的刻画工具，广泛应用于脉动阵列的自动生成中。
+
+本课题中，我们拟设计一种基于多面体模型和脉动阵列的深度前馈网络加速器自动生成系统。
+该系统的输入是 (深度前馈网络, 资源约束, 设计指标约束)，
+输出是经过自动调优的、针对该网络的、满足资源约束和设计指标约束的加速器架构设计和数据流映射。
+只要给定设计参数，该系统的生成和调优过程完全黑盒，
+预期将大大缩短 DNN ASIC 设计环节的耗时，降低相关工业环节的技术门槛。
+
+\section{国内外在该方向的研究现状及分析}
+
+神经网络是一类蕴含着极高并行化潜能的算法，
+DNN 推理加速的核心手段就在于提高数据运算和传输的并行性。
+例如，全连接 (Full Connected, FC) 和卷积 (Convoltion) 层具有拓扑并行性 (topological parallelism)，
+因为它们进行的 MAC 操作不存在数据依赖，可以并行执行。
+迎合这一特点，许多并行计算相关的理论和技术在神经网络上得以发扬光大\cite{sze_efficient_2017}。
+
+另一方面，有关研究也指出，神经网络的性能瓶颈并非来自于 MAC 运算，
+而是来自于数据存取的过程\cite{chen_diannao_2014}。
+从 DRAM 中进行一次读取数据的能耗比进行一次 MAC 运算高约 1$\sim$2 个数量级。
+因此，如何针对神经网络特点，采用合适的数据流模式、最大化数据复用，
+也成为了 DNN ASIC 设计中的焦点之一\cite{chen_using_2017}。
+
+DNN 推理加速器设计空间过于庞大的问题，
+不同的工作有着各自的的设计空间探索 (Design Space Exploration, DSE) 方案，
+但大体上可以按照循环优化方法、数据流模式和硬件资源约束等三个维度进行划分\cite{yang_interstellar_2020}。
+
+Chen \textit{et al.}\cite{chen_eyeriss_2016}
+提出一种高能效、可配置的神经网络加速器 Eyeriss。
+针对神经网络运算过程中数据搬运时间能耗开销大的问题，
+该加速器采用行静止 (Row Stationary, RS) 和数据压缩两种办法，
+将 AlexNet 的卷积层能耗效率提高了 2.5 倍。
+该文中提出的新型数据复用及其映射的方法成为为后来诸多加速器生成器借鉴。
+其作者还在此基础上提出 Eyeriss v2\cite{chen_eyeriss_2019}，
+在其中设计了一种在低数据复用情况下依然提供高带宽和较高 PE 利用率的片上网络 (Network-on-Chip, NoC)，
+使之更适应紧凑型和稀疏型的 DNN。
+
+Cong \textit{et al.}\cite{cong_polysa_2018} 
+提出一种编译框架 PolySA，
+它利用多面体模型实现了 FPGA 上脉动阵列的端到端编译。
+其前端支持的算子为静态边界且循环体中仅含一条仿射表达式的循环，包括矩阵乘法、CNN 卷积等。
+以矩阵乘法为例，给定约束和指标，PolySA 自动生成其所有可行的脉动阵列仅需26分钟。
+
+Wang \textit{et al.}\cite{wang_autosa_2021} 
+提出的 AutoSA 同样以多面体模型为手段，
+相比 PolySA 支持了包括 LU 分解在内的更多算子，
+并对 SIMD 向量化等提供了支持。
+但是，由于 FPGA 平台定制化程度有限，
+PolySA 和 AutoSA 均未能将内存层级、数据流模式等要素纳入设计。
+
+NVIDIA 早前推出过开源的深度学习加速器架构 NVDLA \cite{nvidia_nvdla_2018}，
+旨在简化集成和可移植性。硬件支持各种 IoT 设备，
+促进设计深度学习推理加速器的设计的标准化和模块化。
+它的 PE 仅支持向量级的 MAC 运算。
+
+Venkatesan \textit{et al.}\cite{venkatesan_magnet_2019}
+提出了一种模板化的神经网络加速器生成器 MAGNet。
+它以神经网络组成的目标应用程序以及硬件约束作为输入，
+产生用于神经网络加速器 ASIC 的可综合 RTL，
+以及用于在所生成的硬件上运行目标网络的有效映射。
+对于模板化后的设计空间，MAGNet 用随机采样和贝叶斯方法进行优化。
+不过，MAGNet 的 PE 结构同样仅支持向量级 MAC 运算。
+
+Xi \textit{et al.}\cite{xi_smaug_2020}
+提出了可模拟端到端深度学习应用程序的 DSE 框架 SMAUG，
+旨在使 DNN 研究人员能够迅速评估不同的加速器和 SoC 设计。
+但 SMAUG 的硬件设计空间是固定的。
+
+以上 DNN 加速器及其生成器的设计和评估之间往往是孤立的，
+未能将现实环境中的跨栈和系统级效应纳入考虑。
+针对这一问题，Genc \textit{et al.}\cite{genc_gemmini_2021}
+提出了一种全栈 DNN 加速器生成器 Gemmini。
+Gemmini 同样是用架构模板生成 ASIC 加速器，
+支持灵活的编程堆栈和完整的 SoC，具有可捕获系统级效果的共享资源。
+它生成的加速器在高性能 CPU 上可提供最高达三个数量级的加速。
+但是，Gemmini 并不支持针对设计参数的自动调优。
+
+Mei \textit{et al.}\cite{mei_zigzag_2021}
+提出的 DSE 框架 ZigZag 支持非均匀映射和更多映射搜索策略，
+大大拓展了设计空间，且提升了代价预估分析模型和对分级内存支持的的精度。
+
+\section{主要研究内容}
+\section{研究方案}
+\section{进度安排，预期达到的目标}
+\section{课题已具备和所需的条件、经费}
+\section{研究过程中可能遇到的困难和问题，解决的措施}
+\section{主要参考文献}
+\bibliographystyle{hithesis}
+\bibliography{reference}
+
+% Local Variables:
+% TeX-master: "../mainart"
+% TeX-engine: xetex
+% End:
