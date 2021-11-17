@@ -63,3 +63,7 @@ hithesis.bst
 *.ins
 /bthesistitle.eps
 *.eps
+*.jpg
+*.png
+*.jpeg
+*.gif

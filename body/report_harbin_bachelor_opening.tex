@@ -16,9 +16,17 @@
 若人工逐个尝试每个设计点并加以验证，时间和经济成本都是无法接受的。
 因此，如何实现 DNN 加速器设计的自动化成为 DNN ASIC 领域的重大课题 \cite{capra_hardware_2020}。
 
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.5\textwidth]{systolic-array.eps}
+    \caption{脉动阵列}
+    \label{systolic-array}
+\end{figure}
+
 脉动阵列 (Systolic Array, SA) 是一种
 由相同的互连的计算单元 (Processing Element, PE) 组成的架构，
-可用于许多应用程序，如线性代数\cite{moss_customizable_2018}、
+如图\ref{systolic-array}所示。
+它可用于许多应用程序，如线性代数\cite{moss_customizable_2018}、
 机器学习\cite{jouppi_-datacenter_2017}和动态规划\cite{khailany_accelerating_2020}等，
 是资源利用率最高、可伸展性最强、功耗最优的架构之一，
 被 NVIDIA TPU 等许多卓有成效的深度学习硬件采用。
@@ -56,9 +64,19 @@ Chen \textit{et al.}\cite{chen_eyeriss_2016}
 该加速器采用行静止 (Row Stationary, RS) 和数据压缩两种办法，
 将 AlexNet 的卷积层能耗效率提高了 2.5 倍。
 该文中提出的新型数据复用及其映射的方法成为为后来诸多加速器生成器借鉴。
+Eyeriss 基本架构如图 \ref{dnn-asic-arch} 所示，
+它包含四个基本要素：片外内存 (如DRAM)、片上全局缓存、计算单元 PE及其构成的片上网络 (Network-on-Chip, NoC)。
+后续工作的 ASIC 设计也基本在这一框架之内。
 其作者还在此基础上提出 Eyeriss v2\cite{chen_eyeriss_2019}，
-在其中设计了一种在低数据复用情况下依然提供高带宽和较高 PE 利用率的片上网络 (Network-on-Chip, NoC)，
+在其中设计了一种在低数据复用情况下依然提供高带宽和较高 PE 利用率的 NoC，
 使之更适应紧凑型和稀疏型的 DNN。
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.55\textwidth]{dnn-asic-arch.eps}
+    \caption{典型的 DNN ASIC 架构}
+    \label{dnn-asic-arch}
+\end{figure}
 
 Cong \textit{et al.}\cite{cong_polysa_2018} 
 提出一种编译框架 PolySA，
@@ -79,12 +97,21 @@ NVIDIA 早前推出过开源的深度学习加速器架构 NVDLA \cite{nvidia_nv
 它的 PE 仅支持向量级的 MAC 运算。
 
 Venkatesan \textit{et al.}\cite{venkatesan_magnet_2019}
-提出了一种模板化的神经网络加速器生成器 MAGNet。
+提出了一种模板化的神经网络加速器生成器 MAGNet，
+其架构模板和全局 DSE 框架如图\ref{magnet}所示。
 它以神经网络组成的目标应用程序以及硬件约束作为输入，
 产生用于神经网络加速器 ASIC 的可综合 RTL，
 以及用于在所生成的硬件上运行目标网络的有效映射。
 对于模板化后的设计空间，MAGNet 用随机采样和贝叶斯方法进行优化。
 不过，MAGNet 的 PE 结构同样仅支持向量级 MAC 运算。
+
+\begin{figure}[htbp]
+    \centering
+    \subfigure[Picture a title] {\includegraphics[width=.47\textwidth]{magnet-arch-temp.eps}}
+	\subfigure[Picture b title] {\includegraphics[width=.47\textwidth]{magnet-design-space-explo.eps}}
+    \caption{MAGNet 架构}
+    \label{magnet}
+\end{figure}
 
 Xi \textit{et al.}\cite{xi_smaug_2020}
 提出了可模拟端到端深度学习应用程序的 DSE 框架 SMAUG，
@@ -104,11 +131,34 @@ Mei \textit{et al.}\cite{mei_zigzag_2021}
 提出的 DSE 框架 ZigZag 支持非均匀映射和更多映射搜索策略，
 大大拓展了设计空间，且提升了代价预估分析模型和对分级内存支持的的精度。
 
+综上所述，将多面体-脉动阵列架构应用于 DNN ASIC 设计是有迹可循且具备较高研究价值的。
+
 \section{主要研究内容}
+
+本课题将探索一种新型的 DSE 框架，
+我们期望把多面体-脉动阵列架构和分级内存结合起来，
+并分析各种数据流模式、循环分解方法和搜索策略在这套框架下的性能。
+
 \section{研究方案}
+
+
+
 \section{进度安排，预期达到的目标}
+
+进度安排如下：
+\begin{itemize}
+    \item 2021.11
+    \item 
+\end{itemize}
+
 \section{课题已具备和所需的条件、经费}
+
+
+
 \section{研究过程中可能遇到的困难和问题，解决的措施}
+
+
+
 \section{主要参考文献}
 \bibliographystyle{hithesis}
 \bibliography{reference}
